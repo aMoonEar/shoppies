@@ -1,16 +1,14 @@
 import "./App.css";
 import NavigationBar from "./components/navigationBar.jsx";
 import LandingInfo from "./components/landingInfo";
-import SearchBar from "./components/searchBar";
-import Footer from "./components/footer";
+import Search from "./components/searchBar";
 
 function App() {
   return (
     <div className="App">
-      <NavigationBar />
+      {/* <NavigationBar /> */}
       <LandingInfo />
-      <SearchBar />
-      <Footer />
+      <Search />
     </div>
   );
 }

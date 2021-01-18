@@ -6,12 +6,14 @@ import "aos/dist/aos.css";
 const SVG = styled.svg`
   width: 150px;
   height: 150px;
+  margin: 300px auto 600px auto;
   display: block;
-  margin: 300px auto;
 
-  .displayNone {
+  ${({ loading }) =>
+    !loading &&
+    `
     display: none;
-  }
+  `}
 `;
 
 class Loader extends Component {
@@ -37,10 +39,8 @@ class Loader extends Component {
         y="0px"
         viewBox="0 0 100 100"
         enable-background="new 0 0 0 0"
+        loading={this.props.loading}
       >
-        <div
-          className={`${this.props.loading === true ? "displayNone" : "show"} `}
-        ></div>
         <circle fill="#fff" stroke="none" cx="6" cy="50" r="6">
           <animate
             attributeName="opacity"

@@ -9,6 +9,7 @@ import Pagination from "../components/pagination";
 import Loader from "../components/loader";
 import Paragraph from "../theme/paragraph";
 import { SearchIcon } from "@primer/octicons-react";
+import Footer from "../components/footer";
 
 const SearchInput = styled.input`
   width: 85%;
@@ -91,14 +92,16 @@ const Styles = styled.div`
   }
 `;
 
-class NavigationBar extends Component {
+class Search extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
       query: "",
       results: {},
+      nominations: [],
       loading: false,
+      full: false,
       pageNumber: 1,
       totalPages: 1,
     };
@@ -116,9 +119,8 @@ class NavigationBar extends Component {
   }
 
   fetchSearchResults = (updatedPageNo, query) => {
-    console.log(updatedPageNo);
     const pageNumber = updatedPageNo ? `&page=${updatedPageNo}` : "";
-    const searchUrl = `http://www.omdbapi.com/?apikey=a5eb5dea&type=movie&s=${query}${pageNumber}`;
+    const searchUrl = `https://www.omdbapi.com/?apikey=a5eb5dea&type=movie&s=${query}${pageNumber}`;
 
     if (this.cancel) {
       this.cancel.cancel();
@@ -131,7 +133,6 @@ class NavigationBar extends Component {
         cancelToken: this.cancel.token,
       })
       .then((res) => {
-        console.log(res.data);
         let resultNotFoundMsg =
           res.data.Response === "False" && res.data.totalResults && query != ""
             ? res.data.Error
@@ -174,13 +175,13 @@ class NavigationBar extends Component {
 
   handleNextPage = () => {
     let updatePage = this.state.pageNumber + 1;
-    this.setState({ results: {}, pageNumber: updatePage });
+    this.setState({ results: {}, loading: true, pageNumber: updatePage });
     this.fetchSearchResults(updatePage, this.state.query);
   };
 
   handlePrevPage = () => {
     let updatePage = this.state.pageNumber - 1;
-    this.setState({ results: {}, pageNumber: updatePage });
+    this.setState({ results: {}, loading: true, pageNumber: updatePage });
     this.fetchSearchResults(updatePage, this.state.query);
   };
 
@@ -192,11 +193,16 @@ class NavigationBar extends Component {
           <Row className="justify-content-md-center">
             {results.Search.map((result) => {
               return (
-                <Col md={3} sm={6}>
+                <Col md={3} sm={6} key={result.imdbID}>
                   <MovieResult
+                    imdbID={result.imdbID}
+                    addNomination={this.addNomination}
                     title={result.Title}
+                    nominations={this.state.nominations}
                     poster={result.Poster}
                     year={result.Year}
+                    full={this.state.full}
+                    searched={true}
                   />
                 </Col>
               );
@@ -207,14 +213,42 @@ class NavigationBar extends Component {
     }
   };
 
+  addNomination = (title, poster, year, imdbID) => {
+    if (this.state.nominations.length <= 4) {
+      this.setState((prevState) => ({
+        nominations: [
+          ...prevState.nominations,
+          {
+            imdbID: imdbID,
+            title: title,
+            poster: poster,
+            year: year,
+          },
+        ],
+      }));
+      if (this.state.nominations.length == 4) {
+        this.setState({ full: true });
+      }
+    }
+  };
+
+  removeNomination = (imdbID) => {
+    this.setState({
+      nominations: this.state.nominations.filter(function (movie) {
+        return movie.imdbID !== imdbID;
+      }),
+      full: false,
+    });
+  };
+
   render() {
     const {
       loading,
-      results,
       message,
       totalPages,
       pageNumber,
       query,
+      nominations,
     } = this.state;
     return (
       <Styles>
@@ -242,9 +276,6 @@ class NavigationBar extends Component {
             <SearchIcon size={24} />
           </SearchButton>
 
-          <Loader loading={loading} />
-          {console.log(loading)}
-
           {/* Error Message */}
           {message && <Paragraph className="message">{message}</Paragraph>}
 
@@ -252,7 +283,7 @@ class NavigationBar extends Component {
           <Pagination
             handlePrevPage={this.handlePrevPage}
             handleNextPage={this.handleNextPage}
-            results={results}
+            loading={loading}
             pageNumber={pageNumber}
             query={query}
             totalPages={totalPages}
@@ -265,15 +296,21 @@ class NavigationBar extends Component {
             className="mt-5"
             handlePrevPage={this.handlePrevPage}
             handleNextPage={this.handleNextPage}
-            results={results}
+            loading={loading}
             pageNumber={pageNumber}
             query={query}
             totalPages={totalPages}
           ></Pagination>
+
+          <Loader loading={loading}></Loader>
+          <Footer
+            nominations={nominations}
+            removeNomination={this.removeNomination}
+          />
         </Container>
       </Styles>
     );
   }
 }
 
-export default NavigationBar;
+export default Search;

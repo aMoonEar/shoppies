@@ -54,9 +54,7 @@ class Pagination extends Component {
   render() {
     return (
       <Styles
-        className={`text-center ${
-          this.props.results.Response == "False" ? "hide" : "show"
-        } `}
+        className={`text-center ${this.props.loading ? "hide" : "show"} `}
       >
         <PaginationButton
           className={` ${this.props.pageNumber !== 1 ? "show" : "hide"} `}
