@@ -52,7 +52,7 @@ class MovieResult extends Component {
   render() {
     const { title, poster, year } = this.state;
     return (
-      <Styles>
+      <Styles className="text-center">
         <MoviePoster
           style={{
             background: `url(${poster})`,
@@ -62,6 +62,7 @@ class MovieResult extends Component {
           data-aos="fade"
           data-aos-duration="1200"
         ></MoviePoster>
+
         <Paragraph
           className="title"
           data-aos="fade"
@@ -69,6 +70,7 @@ class MovieResult extends Component {
           data-aos-delay="150"
         >
           {title}
+
           <span
             className="year"
             data-aos="fade"

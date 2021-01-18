@@ -1,14 +1,17 @@
 import React, { Component } from "react";
 import styled from "styled-components";
-import { Container, Col, Row } from "react-bootstrap";
+import { Container, Col, Row, Button } from "react-bootstrap";
 import Aos from "aos";
 import "aos/dist/aos.css";
 import axios from "axios";
 import MovieResult from "../components/movieResult";
+import Pagination from "../components/pagination";
+import Loader from "../components/loader";
 import Paragraph from "../theme/paragraph";
+import { SearchIcon } from "@primer/octicons-react";
 
-const Input = styled.input`
-  width: 90%;
+const SearchInput = styled.input`
+  width: 85%;
   height: 100px;
   padding: 10px 0 0 0;
   border-width: 0 0 2px 0;
@@ -23,9 +26,14 @@ const Input = styled.input`
     color: ${(props) => props.theme.green};
     text-align: center;
     bottom: 1px;
-    font-size: 60px;
     font-weight: 200;
     opacity: 0.66;
+    font-size: 60px;
+
+    @media (max-width: 1000px) {
+      font-size: 4vw;
+      font-weight: 400;
+    }
   }
 
   /* Remove default outline when click on text box */
@@ -40,10 +48,46 @@ const Input = styled.input`
   }
 `;
 
+const SearchButton = styled(Button)`
+  background-color: ${(props) => props.theme.midBlue};
+  padding: 15px;
+  margin-left: 10px;
+  margin-bottom: 10px;
+  outline: 0 !important;
+  box-shadow: none !important;
+  border: 0px !important;
+
+  :hover,
+  :active,
+  :focus {
+    background-color: ${(props) => props.theme.darkBlue} !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+  }
+`;
+
 const Styles = styled.div`
   .message {
     margin-top: 20px;
     font-weight: 400;
+  }
+
+  .styledContentLoader {
+    width: 500px;
+    height: 500px;
+  }
+
+  .hide {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .show {
+    display: initial;
+  }
+
+  .currentPage {
+    margin: 0 30px;
   }
 `;
 
@@ -55,7 +99,11 @@ class NavigationBar extends Component {
       query: "",
       results: {},
       loading: false,
+      pageNumber: 1,
+      totalPages: 1,
     };
+
+    this.searchInput = React.createRef();
 
     // Cancel token
     this.cancel = "";
@@ -68,6 +116,7 @@ class NavigationBar extends Component {
   }
 
   fetchSearchResults = (updatedPageNo, query) => {
+    console.log(updatedPageNo);
     const pageNumber = updatedPageNo ? `&page=${updatedPageNo}` : "";
     const searchUrl = `http://www.omdbapi.com/?apikey=a5eb5dea&type=movie&s=${query}${pageNumber}`;
 
@@ -75,7 +124,7 @@ class NavigationBar extends Component {
       this.cancel.cancel();
     }
 
-    this.cancel = axios.CancelToken.source();
+    // this.cancel = axios.CancelToken.source();
 
     axios
       .get(searchUrl, {
@@ -84,13 +133,14 @@ class NavigationBar extends Component {
       .then((res) => {
         console.log(res.data);
         let resultNotFoundMsg =
-          res.data.Response === "False" && query != ""
+          res.data.Response === "False" && res.data.totalResults && query != ""
             ? res.data.Error
             : `Found ${res.data.totalResults} Results`;
         this.setState({
           results: res.data,
           message: resultNotFoundMsg,
           loading: false,
+          totalPages: Math.ceil(res.data.totalResults / 10),
         });
       })
       .catch((error) => {
@@ -104,22 +154,45 @@ class NavigationBar extends Component {
       });
   };
 
-  handleOnInputChange = (event) => {
-    const query = event.target.value;
-    this.setState({ query, loading: true }, () => {
-      this.fetchSearchResults(1, query);
-    });
+  handleOnInputChange = (event, buttonClick) => {
+    if (event.keyCode === 13 || buttonClick == true) {
+      this.setState({
+        results: {},
+        pageNumber: 1,
+      });
+
+      const query = this.searchInput.current.value;
+      if (!query) {
+        this.setState({ query, results: {}, message: "" });
+      } else {
+        this.setState({ query, loading: true, message: "" }, () => {
+          this.fetchSearchResults(this.state.pageNumber, query);
+        });
+      }
+    }
+  };
+
+  handleNextPage = () => {
+    let updatePage = this.state.pageNumber + 1;
+    this.setState({ results: {}, pageNumber: updatePage });
+    this.fetchSearchResults(updatePage, this.state.query);
+  };
+
+  handlePrevPage = () => {
+    let updatePage = this.state.pageNumber - 1;
+    this.setState({ results: {}, pageNumber: updatePage });
+    this.fetchSearchResults(updatePage, this.state.query);
   };
 
   renderSearchResults = () => {
-    const { results, loading } = this.state;
+    const { results } = this.state;
     if (results.Search) {
       return (
         <div>
-          <Row className="justify-content-md-center ">
+          <Row className="justify-content-md-center">
             {results.Search.map((result) => {
               return (
-                <Col xs={3}>
+                <Col md={3} sm={6}>
                   <MovieResult
                     title={result.Title}
                     poster={result.Poster}
@@ -135,11 +208,18 @@ class NavigationBar extends Component {
   };
 
   render() {
-    const { message } = this.state;
+    const {
+      loading,
+      results,
+      message,
+      totalPages,
+      pageNumber,
+      query,
+    } = this.state;
     return (
       <Styles>
         <Container className="text-center pt-4">
-          <Input
+          <SearchInput
             className="text-center"
             type="text"
             name="query"
@@ -148,14 +228,48 @@ class NavigationBar extends Component {
             data-aos-duration="1500"
             data-aos-delay="800"
             placeholder="What's one of your favorite movies?"
-            onChange={this.handleOnInputChange}
-          />
+            ref={this.searchInput}
+            onKeyDown={(e) => this.handleOnInputChange(e, false)}
+          ></SearchInput>
+
+          <SearchButton
+            type="submit"
+            data-aos="fade-up"
+            data-aos-duration="1500"
+            data-aos-delay="900"
+            onClick={(e) => this.handleOnInputChange(e, true)}
+          >
+            <SearchIcon size={24} />
+          </SearchButton>
+
+          <Loader loading={loading} />
+          {console.log(loading)}
 
           {/* Error Message */}
           {message && <Paragraph className="message">{message}</Paragraph>}
 
+          {/* Pagination */}
+          <Pagination
+            handlePrevPage={this.handlePrevPage}
+            handleNextPage={this.handleNextPage}
+            results={results}
+            pageNumber={pageNumber}
+            query={query}
+            totalPages={totalPages}
+          ></Pagination>
+
           {/* Search results */}
           {this.renderSearchResults()}
+
+          <Pagination
+            className="mt-5"
+            handlePrevPage={this.handlePrevPage}
+            handleNextPage={this.handleNextPage}
+            results={results}
+            pageNumber={pageNumber}
+            query={query}
+            totalPages={totalPages}
+          ></Pagination>
         </Container>
       </Styles>
     );
