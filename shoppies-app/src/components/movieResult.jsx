@@ -133,7 +133,7 @@ class MovieResult extends Component {
       return null;
     }
 
-    if (this.props.searched) {
+    if (this.props.searched && this.grayedOut()) {
       this.props.addNomination(
         this.props.title,
         this.props.poster,

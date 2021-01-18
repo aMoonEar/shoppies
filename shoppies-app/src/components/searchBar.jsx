@@ -133,8 +133,9 @@ class Search extends Component {
         cancelToken: this.cancel.token,
       })
       .then((res) => {
+        console.log(res.data);
         let resultNotFoundMsg =
-          res.data.Response === "False" && res.data.totalResults && query != ""
+          res.data.Response === "False" && query != ""
             ? res.data.Error
             : `Found ${res.data.totalResults} Results`;
         this.setState({
@@ -284,6 +285,7 @@ class Search extends Component {
             handlePrevPage={this.handlePrevPage}
             handleNextPage={this.handleNextPage}
             loading={loading}
+            response={this.state.results.Response}
             pageNumber={pageNumber}
             query={query}
             totalPages={totalPages}
@@ -297,6 +299,7 @@ class Search extends Component {
             handlePrevPage={this.handlePrevPage}
             handleNextPage={this.handleNextPage}
             loading={loading}
+            response={this.state.results.Response}
             pageNumber={pageNumber}
             query={query}
             totalPages={totalPages}

@@ -57,21 +57,28 @@ class Pagination extends Component {
         className={`text-center ${this.props.loading ? "hide" : "show"} `}
       >
         <PaginationButton
-          className={` ${this.props.pageNumber !== 1 ? "show" : "hide"} `}
+          className={` ${
+            this.props.pageNumber !== 1 && this.props.response == "True"
+              ? "show"
+              : "hide"
+          } `}
           onClick={this.props.handlePrevPage}
         >
           <ChevronLeftIcon size={16} />
         </PaginationButton>
 
         <Paragraph
-          className={`currentPage ${this.props.query ? "show" : "hide"} `}
+          className={`currentPage ${
+            this.props.query && this.props.response == "True" ? "show" : "hide"
+          } `}
         >
           Page {this.props.pageNumber}
         </Paragraph>
 
         <PaginationButton
           className={`shadow-none currentPage ${
-            this.props.pageNumber - this.props.totalPages !== 0
+            this.props.pageNumber - this.props.totalPages !== 0 &&
+            this.props.response == "True"
               ? "show"
               : "hide"
           } `}
