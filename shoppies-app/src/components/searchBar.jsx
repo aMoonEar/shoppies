@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import styled from "styled-components";
-import { Container, Col, Row, Button } from "react-bootstrap";
+import { Container, Col, Row, Button, Toast } from "react-bootstrap";
 import Aos from "aos";
 import "aos/dist/aos.css";
 import axios from "axios";
@@ -104,6 +104,7 @@ class Search extends Component {
       full: false,
       pageNumber: 1,
       totalPages: 1,
+      banner: false,
     };
 
     this.searchInput = React.createRef();
@@ -228,7 +229,7 @@ class Search extends Component {
         ],
       }));
       if (this.state.nominations.length == 4) {
-        this.setState({ full: true });
+        this.setState({ full: true, banner: true });
       }
     }
   };
@@ -253,6 +254,30 @@ class Search extends Component {
     } = this.state;
     return (
       <Styles>
+        {/* Toast */}
+        <div
+          aria-live="polite"
+          aria-atomic="true"
+          style={{
+            position: "fixed",
+            minHeight: "100px",
+            width: "300px",
+          }}
+        >
+          <Toast
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+            }}
+            onClose={() => (this.state.banner = false)}
+            show={this.state.banner}
+            autohide
+          >
+            <Toast.Body>You made the maximum number of nominations!</Toast.Body>
+          </Toast>
+        </div>
+
         <Container className="text-center pt-4">
           <SearchInput
             className="text-center"

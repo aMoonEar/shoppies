@@ -1,15 +1,17 @@
 import "./App.css";
-import NavigationBar from "./components/navigationBar.jsx";
 import LandingInfo from "./components/landingInfo";
 import Search from "./components/searchBar";
+import { ToastProvider, useToasts } from "react-toast-notifications";
 
 function App() {
   return (
-    <div className="App">
-      {/* <NavigationBar /> */}
-      <LandingInfo />
-      <Search />
-    </div>
+    <ToastProvider>
+      <div className="App">
+        {/* <NavigationBar /> */}
+        <LandingInfo />
+        <Search />
+      </div>
+    </ToastProvider>
   );
 }
 
